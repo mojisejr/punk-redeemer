@@ -6,7 +6,9 @@ async function createTicket(
   ticketId,
   tokens,
   redeemer,
-  signer
+  signer,
+  verifyingContract,
+  chainId
 ) {
   const values = {
     ticketContract,
@@ -18,7 +20,7 @@ async function createTicket(
   const domain = {
     name: SIGNING_DOMAIN,
     version: SIGNATURE_VERSION,
-    verifyingContract: contract.address,
+    verifyingContract,
     chainId,
   };
 

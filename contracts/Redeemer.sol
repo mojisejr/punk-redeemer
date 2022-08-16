@@ -1,4 +1,4 @@
-//SPXD-License-Identifier: MIT
+//SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 pragma abicoder v2;
 
@@ -7,6 +7,8 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
 import "hardhat/console.sol";
+import "./Item.sol";
+
 
 contract PunkRedeemer is EIP712, AccessControl {
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
@@ -25,18 +27,25 @@ contract PunkRedeemer is EIP712, AccessControl {
 
     address itemContract;
 
-    constructor(address minter, address item) EIP712(SIGNING_DOAMIN, SIGNATURE_VERSION) {
+    event Redeemed(address redeemer, uint256[] tokens);
+
+    constructor(address minter) EIP712(SIGNING_DOAMIN, SIGNATURE_VERSION) {
         _setupRole(MINTER_ROLE, minter);
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
-
-
     }
 
-    function redeem(Ticket calldata info) public view returns(bool) {
+    function setItemContract(address item) public {
+        require(hasRole(DEFAULT_ADMIN_ROLE, _msgSender()), 'unauthorized');
+        itemContract = item;
+    }
+
+    function redeem(Ticket calldata info) public {
         address signer = _verify(info);
-        console.log("signer: %s",)
+        console.log("signer: %s", signer);
         require(hasRole(MINTER_ROLE, signer), 'invalid signature or unauthorized');
-        return true; 
+        Item(itemContract).minterMint(info.tokens, info.redeemer);
+
+        emit Redeemed(info.redeemer,info.tokens);
     }
 
 
@@ -53,7 +62,7 @@ contract PunkRedeemer is EIP712, AccessControl {
                 keccak256(abi.encodePacked(info.tokens)),
                 info.redeemer
             ))); 
-        console.logBytes32(h);
+        // console.logBytes32(h);
         return h;
     }
 
