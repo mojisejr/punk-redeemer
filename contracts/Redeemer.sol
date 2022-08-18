@@ -39,6 +39,7 @@ contract PunkRedeemer is EIP712, AccessControl {
         itemContract = item;
     }
 
+
     function redeem(Ticket calldata info) public {
         address signer = _verify(info);
         console.log("signer: %s", signer);
